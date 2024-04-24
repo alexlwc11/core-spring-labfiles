@@ -4,13 +4,16 @@ import common.money.MonetaryAmount;
 import common.money.Percentage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 
 import javax.sql.DataSource;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -22,12 +25,12 @@ public class JdbcAccountRepositoryTests {
 
 	private JdbcAccountRepository repository;
 
-	private DataSource dataSource;
+	private JdbcTemplate jdbcTemplate;
 
 	@BeforeEach
-	public void setUp() throws Exception {
-		dataSource = createTestDataSource();
-		repository = new JdbcAccountRepository(dataSource);
+	public void setUp() {
+		jdbcTemplate = new JdbcTemplate(createTestDataSource());
+		repository = new JdbcAccountRepository(jdbcTemplate);
 	}
 
 	@Test
@@ -68,21 +71,29 @@ public class JdbcAccountRepositoryTests {
 
 	private void verifyBeneficiaryTableUpdated() throws SQLException {
 		String sql = "select SAVINGS from T_ACCOUNT_BENEFICIARY where NAME = ? and ACCOUNT_ID = ?";
-		PreparedStatement stmt = dataSource.getConnection().prepareStatement(sql);
 
-		// assert Annabelle has $4.00 savings now
-		stmt.setString(1, "Annabelle");
-		stmt.setLong(2, 0L);
-		ResultSet rs = stmt.executeQuery();
-		rs.next();
-		assertEquals(MonetaryAmount.valueOf("4.00"), MonetaryAmount.valueOf(rs.getString(1)));
+		String sqlResult = jdbcTemplate.queryForObject(sql, new Object[]{"Annabelle", 0L}, new int[]{Types.VARCHAR, Types.INTEGER}, String.class);
+		assertEquals(MonetaryAmount.valueOf("4.00"), MonetaryAmount.valueOf(sqlResult));
 
-		// assert Corgan has $4.00 savings now
-		stmt.setString(1, "Corgan");
-		stmt.setLong(2, 0L);
-		rs = stmt.executeQuery();
-		rs.next();
-		assertEquals(MonetaryAmount.valueOf("4.00"), MonetaryAmount.valueOf(rs.getString(1)));
+		sqlResult = jdbcTemplate.queryForObject(sql, new Object[]{"Corgan", 0L}, new int[]{Types.VARCHAR, Types.INTEGER}, String.class);
+		assertEquals(MonetaryAmount.valueOf("4.00"), MonetaryAmount.valueOf(sqlResult));
+
+
+//		PreparedStatement stmt = dataSource.getConnection().prepareStatement(sql);
+//
+//		// assert Annabelle has $4.00 savings now
+//		stmt.setString(1, "Annabelle");
+//		stmt.setLong(2, 0L);
+//		ResultSet rs = stmt.executeQuery();
+//		rs.next();
+//		assertEquals(MonetaryAmount.valueOf("4.00"), MonetaryAmount.valueOf(rs.getString(1)));
+//
+//		// assert Corgan has $4.00 savings now
+//		stmt.setString(1, "Corgan");
+//		stmt.setLong(2, 0L);
+//		rs = stmt.executeQuery();
+//		rs.next();
+//		assertEquals(MonetaryAmount.valueOf("4.00"), MonetaryAmount.valueOf(rs.getString(1)));
 	}
 
 	private DataSource createTestDataSource() {
