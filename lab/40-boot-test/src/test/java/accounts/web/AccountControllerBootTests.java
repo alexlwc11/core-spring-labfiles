@@ -1,42 +1,58 @@
 package accounts.web;
 
+import accounts.AccountManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import common.money.Percentage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.web.servlet.MockMvc;
+import rewards.internal.account.Account;
+import rewards.internal.account.Beneficiary;
 
 // TODO-06: Get yourself familiarized with various testing utility classes
 // - Uncomment the import statements below
-//import static org.mockito.ArgumentMatchers.any;
-//import static org.mockito.BDDMockito.*;
-//import static org.mockito.Mockito.verify;
-//import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-//import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import java.util.List;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.*;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 // TODO-07: Replace @ExtendWith(SpringExtension.class) with the following annotation
 // - @WebMvcTest(AccountController.class) // includes @ExtendWith(SpringExtension.class)
-@ExtendWith(SpringExtension.class)
+//@ExtendWith(SpringExtension.class)
+@WebMvcTest(AccountController.class)
 public class AccountControllerBootTests {
 
 	// TODO-08: Autowire MockMvc bean
+	@Autowired
+	MockMvc mockMvc;
 
 	// TODO-09: Create AccountManager mock bean using @MockBean annotation
+	@MockBean
+	AccountManager accountManager;
 
 	// TODO-10: Write positive test for GET request for an account
 	// - Uncomment the code and run the test and verify it succeeds
 	@Test
 	public void accountDetails() throws Exception {
 
-		//given(accountManager.getAccount(0L))
-		//		.willReturn(new Account("1234567890", "John Doe"));
+		given(accountManager.getAccount(0L))
+				.willReturn(new Account("1234567890", "John Doe"));
 
-		//mockMvc.perform(get("/accounts/0"))
-		//	   .andExpect(status().isOk())
-		//	   .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-		//	   .andExpect(jsonPath("name").value("John Doe"))
-		//	   .andExpect(jsonPath("number").value("1234567890"));
+		mockMvc.perform(get("/accounts/0"))
+			   .andExpect(status().isOk())
+			   .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+			   .andExpect(jsonPath("name").value("John Doe"))
+			   .andExpect(jsonPath("number").value("1234567890"));
 
-		//verify(accountManager).getAccount(0L);
+		verify(accountManager).getAccount(0L);
 
 	}
 
@@ -47,15 +63,17 @@ public class AccountControllerBootTests {
 	@Test
 	public void accountDetailsFail() throws Exception {
 
-		//given(accountManager.getAccount(any(Long.class)))
-		//		.willThrow(new IllegalArgumentException("No such account with id " + 0L));
+		given(accountManager.getAccount(any(Long.class)))
+				.willThrow(new IllegalArgumentException("No such account with id " + 0L));
 
 		// (Write code here)
 		// - Use mockMvc to perform HTTP Get operation using "/accounts/9999"
         //   as a non-existent account URL
 		// - Verify that the HTTP response status is 404
+		mockMvc.perform(get("/accounts/9999"))
+				.andExpect(status().isNotFound());
 
-		//verify(accountManager).getAccount(any(Long.class));
+		verify(accountManager).getAccount(any(Long.class));
 
 	}
 
@@ -66,11 +84,11 @@ public class AccountControllerBootTests {
 	@Test
 	public void createAccount() throws Exception {
 
-		//Account testAccount = new Account("1234512345", "Mary Jones");
-		//testAccount.setEntityId(21L);
+		Account testAccount = new Account("1234512345", "Mary Jones");
+		testAccount.setEntityId(21L);
 
-		//given(accountManager.save(any(Account.class)))
-		//		.willReturn(testAccount);
+		given(accountManager.save(any(Account.class)))
+				.willReturn(testAccount);
 
 		// (Write code here)
 		// Use mockMvc to perform HTTP Post operation to "/accounts"
@@ -80,8 +98,15 @@ public class AccountControllerBootTests {
 		//   object into Json string)
 		// - Verify that the response status is 201
 		// - Verify that the response "Location" header contains "http://localhost/accounts/21"
+		mockMvc.perform(
+					post("/accounts")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(asJsonString(testAccount))
+				)
+				.andExpect(status().isCreated())
+				.andExpect(header().string("Location", "http://localhost/accounts/21"));
 
-		//verify(accountManager).save(any(Account.class));
+		verify(accountManager).save(any(Account.class));
 
 	}
 
@@ -100,5 +125,49 @@ public class AccountControllerBootTests {
 	// - Change `@MockBean` to `@Mock` for the `AccountManager dependency above
 	// - Run the test and observe a test failure
 	// - Change it back to `@MockBean`
+
+	// TODO Extra
+	@Test
+	public void getAccounts() throws Exception {
+		List<Account> accounts = List.of(new Account("123456789", "Keith and Keri Donald"),
+				new Account("123456001", "Dollie R. Adams"),
+				new Account("123456002", "Cornelia J. Andresen"),
+				new Account("123456003", "Coral Villareal Betancourt"),
+				new Account("123456004", "Chad I. Cobbs"),
+				new Account("123456005", "Michael C. Feller"),
+				new Account("123456006", "Michael J. Grover"),
+				new Account("123456007", "John C. Howard"),
+				new Account("123456008", "Ida Ketterer"),
+				new Account("123456009", "Laina Ochoa Lucero"),
+				new Account("123456010", "Wesley M. Mayo"),
+				new Account("123456011", "Leslie F. Mcclary"),
+				new Account("123456012", "John D. Mudra"),
+				new Account("123456013", "Pietronella J. Nielsen"),
+				new Account("123456014", "John S. Oleary"),
+				new Account("123456015", "Glenda D. Smith"),
+				new Account("123456016", "Willemina O. Thygesen"),
+				new Account("123456017", "Antje Vogt"),
+				new Account("123456018", "Julia Weber"),
+				new Account("123456019", "Mark T. Williams"),
+				new Account("123456020", "Christine J. Wilson"));
+		
+		given(accountManager.getAllAccounts()).willReturn(accounts);
+
+		// (Write code here)
+		// Use mockMvc to perform HTTP Get operation to "/accounts"
+		// - Verify that the response status is 200
+		// - Verify that the response content type is APPLICATION_JSON
+		mockMvc.perform(get("/accounts"))
+				.andExpect(status().isOk())
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON))
+				.andExpect(content().json(asJsonString(accounts)));
+
+		verify(accountManager).getAllAccounts();
+	}
+
+	@Test
+	public void beneficiary() {
+		final Beneficiary testBeneficiary = new Beneficiary("David", new Percentage(20));
+	}
 
 }
