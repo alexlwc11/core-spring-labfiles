@@ -2,6 +2,7 @@ package accounts.web;
 
 import accounts.internal.StubAccountManager;
 import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -37,14 +38,14 @@ public class AccountControllerTests {
 		// TODO-10: Fix compiler error
 		// - This constructor needs to pass MeterRegistry object as well
 		// - Run the tests (except the @Disabled ones) in this test class, they should pass
-		controller = new AccountController(new StubAccountManager());
+		controller = new AccountController(new StubAccountManager(), registry);
 	}
 
 	@Test
 	// TODO-19: Test the actuator endpoints
 	// - Remove @Disabled annotation below
 	// - Run this test - it should pass
-	@Disabled
+//	@Disabled
 	public void testHandleDetailsRequest() {
 		Account account = controller.accountDetails(0);
 		assertNotNull(account);
